@@ -812,4 +812,95 @@
             showNotification(`تم تشغيل ${channel.name}`);
           }).catch(error => {
             console.error('خطأ في التشغيل التلقائي:', error);
-            showNotificatio
+            showNotification(`تم تحميل ${channel.name}، يمكنك الضغط على زر التشغيل في المشغل`);
+          });
+        });
+      } else {
+        showNotification('المتصفح لا يدعم تشغيل هذا النوع من الفيديو', 'error');
+      }
+    }
+
+    // تطبيق الجودة المختارة
+    function applyQuality() {
+      const quality = document.getElementById('quality').value;
+      document.getElementById('currentQuality').textContent = quality;
+      
+      if (hls && quality !== 'auto') {
+        const levels = hls.levels;
+        let targetLevel = -1;
+        
+        switch(quality) {
+          case '1080p':
+            targetLevel = levels.findIndex(level => level.height === 1080);
+            break;
+          case '720p':
+            targetLevel = levels.findIndex(level => level.height === 720);
+            break;
+          case '480p':
+            targetLevel = levels.findIndex(level => level.height === 480);
+            break;
+        }
+        
+        if (targetLevel !== -1) {
+          hls.currentLevel = targetLevel;
+        }
+      } else if (hls) {
+        hls.currentLevel = -1; // تلقائي
+      }
+      
+      hideQualityDialog();
+      showNotification(`تم تطبيق جودة ${quality}`);
+    }
+
+    // عرض الإشعارات
+    function showNotification(message, type = 'success') {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.style.display = 'block';
+      notification.style.background = type === 'error' ? '#e74c3c' : 'var(--dark-light)';
+      notification.style.borderLeftColor = type === 'error' ? '#c0392b' : 'var(--primary)';
+      
+      setTimeout(() => {
+        notification.style.display = 'none';
+      }, 3000);
+    }
+
+    // إظهار وإخفاء النوافذ المنبثقة
+    function showChannelDialog() {
+      document.getElementById('channelDialog').style.display = 'flex';
+    }
+
+    function hideChannelDialog() {
+      document.getElementById('channelDialog').style.display = 'none';
+    }
+
+    function showQualityDialog() {
+      document.getElementById('qualityDialog').style.display = 'flex';
+    }
+
+    function hideQualityDialog() {
+      document.getElementById('qualityDialog').style.display = 'none';
+    }
+
+    // إغلاق النوافذ بالضغط على ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        hideChannelDialog();
+        hideQualityDialog();
+      }
+    });
+
+    // إغلاق النوافذ بالضغط خارجها
+    document.querySelectorAll('.dialog-overlay').forEach(overlay => {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.style.display = 'none';
+        }
+      });
+    });
+
+    // تطبيق الجودة عند تغيير القيمة
+    document.getElementById('quality').addEventListener('change', applyQuality);
+  </script>
+</body>
+</html>
